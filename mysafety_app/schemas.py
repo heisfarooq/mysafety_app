@@ -31,5 +31,5 @@ class crt_account_response(BaseModel):
 class Token(BaseModel):
     access_token:str
     token_type:str
-class Tokendata:
-    id: Optional[str]
+class Tokendata(BaseModel):
+    id:Optional[str]= None
