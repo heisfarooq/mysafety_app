@@ -39,7 +39,7 @@ def Update_post(ID:int,updt_post :schemas.crt_post,db:Session = Depends(get_db),
         updated_post.update(updt_post.model_dump(),synchronize_session=False)
 
 @router.delete('/{ID}')
-def Delete_post(ID:int ,db:Session = Depends(get_db),login_current_user:int = Depends(Oauth2.login_as_user)):
+def Delete_post(ID:int ,db:Session = Depends(get_db),current_user:str = Depends(Oauth2.require_admin)):
     deleted_post = db.query(models.Post).filter(models.Post.id==ID)
     if not deleted_post.first() :
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail=(f'post with number {ID} does not exist'))

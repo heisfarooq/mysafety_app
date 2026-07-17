@@ -32,4 +32,5 @@ class Token(BaseModel):
     access_token:str
     token_type:str
 class Tokendata(BaseModel):
-    id:Optional[str]= None
+    # id:Optional[str]= None
+    email:EmailStr | None = None

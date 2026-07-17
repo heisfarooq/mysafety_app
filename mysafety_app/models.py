@@ -1,4 +1,5 @@
-from sqlalchemy import Column,String,Integer,Boolean,ForeignKey
+from sqlalchemy import Column,String,Integer,Boolean,ForeignKey,Enum
+import enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import text
 from sqlalchemy.sql.sqltypes import TIMESTAMP
@@ -13,11 +14,16 @@ class Post(Base):
     time_created = Column(TIMESTAMP(timezone=True),server_default=text('now()'),nullable=False)
     published = Column(Boolean, server_default=text('True'),nullable=False)
 
+class UserRole(str,enum.Enum):
+    user = "user"
+    admin= "admin"
+
 class Users(Base):
     __tablename__ = "Users"
     id = Column(Integer, primary_key=True,nullable=False)
     email = Column(String,nullable=False,unique=True)
     password = Column(String, nullable= False)
+    role = Column(Enum(UserRole),default = UserRole.user)
     phone = Column(String)
     time_created = time_created = Column(TIMESTAMP(timezone=True),server_default=text('Now()'),nullable=False)
     

@@ -6,6 +6,7 @@ from .. import schemas,database,models
 from fastapi import Depends,HTTPException,status
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordBearer
+from ..database import get_db
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='login')
 
@@ -23,14 +24,15 @@ def create_access_token(data:dict):
     token_payload.update({"exp":expiry_time})
     encoded_jwt=jwt.encode(token_payload,SECRET_KEY,algorithm=ALGORITHM)
     return(encoded_jwt)
-def verify_access_token(token:str,credentials_exception):
+def verify_access_token(token:str,credentials_exception,db:Session):
     try:
         decoded_jwt = jwt.decode(token,SECRET_KEY,algorithms= [ALGORITHM])
-        id:str = decoded_jwt.get('users_id')
+        email:str = decoded_jwt.get("sub")
+        user = db.query(models.Users).filter(models.Users.email==email).first()
 
-        if id is None:
+        if user is None:
             raise credentials_exception
-        token_data = schemas.Tokendata(id=str(id))
+        token_data = schemas.Tokendata(email = email)
     except JWTError:
         raise credentials_exception
     return token_data
@@ -39,6 +41,15 @@ def login_as_user(token:str=Depends(oauth2_scheme),db:Session=Depends(database.g
     credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                           detail=f"invalid credentials",
                                           headers={"www-Authenticate":"Bearer"})
-    token_data = verify_access_token(token , credentials_exception)
-    user = db.query(models.Users).filter(models.Users.id == token_data.id).first()
+    token_data = verify_access_token(token , credentials_exception,db)
+    user = db.query(models.Users).filter(models.Users.email == token_data.email).first()
     return user
+
+def require_admin(current_user = Depends(login_as_user)):
+    if current_user.role != models.UserRole.admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    return current_user
+    

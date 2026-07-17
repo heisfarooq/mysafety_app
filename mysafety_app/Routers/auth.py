@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from .. import schemas,models,utils
 from . import Oauth2
+from .. models import Users
 
 router = APIRouter(
     tags=(['Authentication'])
@@ -15,5 +16,7 @@ def login(login_credentials:schemas.userlogin , db:Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail= "invalid login details")
     if not utils.verify(login_credentials.password,user_account.password):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="incorrect password")
-    access_token = Oauth2.create_access_token(data = {"users_id":user_account.id})
+    access_token = Oauth2.create_access_token(data = {"users_id":user_account.id,
+                                                      "sub":user_account.email,
+                                                      "role":user_account.role})
     return{"access_token": access_token,"token_type":"bearer"}
