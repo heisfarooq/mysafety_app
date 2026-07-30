@@ -52,4 +52,6 @@ def require_admin(current_user = Depends(login_as_user)):
             detail="Admin access required"
         )
     return current_user
+
+
     
